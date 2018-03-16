@@ -78,6 +78,12 @@
 # [*windows_package_url*]
 #   String.  URL for windows telegraf chocolatey repo
 #
+# [*version*]
+#   String. Version of Telegraf to install
+#
+# [*package_source*]
+#   String. Download location of package to be used
+
 class telegraf (
   $ensure                 = $telegraf::params::ensure,
   $config_file            = $telegraf::params::config_file,
@@ -103,6 +109,8 @@ class telegraf (
   $purge_config_fragments = $telegraf::params::purge_config_fragments,
   $repo_type              = $telegraf::params::repo_type,
   $windows_package_url    = $telegraf::params::windows_package_url,
+  $version                = $telegraf::params::version,
+  $package_source         = $telegraf::params::package_source,
 ) inherits ::telegraf::params
 {
 
@@ -135,6 +143,8 @@ class telegraf (
   validate_string($windows_package_url)
   validate_bool($service_hasstatus)
   validate_string($service_restart)
+  validate_string($version)
+  validate_string($package_source)
 
   # currently the only way how to obtain merged hashes
   # from multiple files (`:merge_behavior: deeper` needs to be

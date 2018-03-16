@@ -12,48 +12,29 @@ class telegraf::install {
   if $::telegraf::manage_repo {
     case $::osfamily {
       'Debian': {
-        apt::source { 'influxdata':
-          comment  => 'Mirror for InfluxData packages',
-          location => "https://repos.influxdata.com/${_operatingsystem}",
-          release  => $::lsbdistcodename,
-          repos    => $::telegraf::repo_type,
-          key      => '05CE15085FC09D18E99EFB22684A14CF2582E0C5',
-          key_source => 'https://repos.influxdata.com/influxdb.key',
-          include_src => false,
+        if $::telegraf::package_source == undef {
+          $real_package_source = "https://dl.influxdata.com/telegraf/releases/telegraf_${::telegraf::version}-1_amd64.deb"
+        } else {
+          $real_pacakage_source = $::telegraf::package_source
         }
-        Class['apt::update'] -> Package['telegraf']
-      }
-      'RedHat': {
-        yumrepo { 'influxdata':
-          descr    => "InfluxData Repository - ${::operatingsystem} \$releasever",
-          enabled  => 1,
-          baseurl  => "https://repos.influxdata.com/${_operatingsystem}/\$releasever/\$basearch/${::telegraf::repo_type}",
-          gpgkey   => 'https://repos.influxdata.com/influxdb.key',
-          gpgcheck => 1,
+
+        wget::fetch { 'telegraf':
+          source      => $real_package_source,
+          destination => '/tmp/telegraf.deb',
         }
-        Yumrepo['influxdata'] -> Package['telegraf']
-      }
-      'windows': {
-        # repo is not applicable to windows
-      }
-      default: {
-        fail('Only RedHat, CentOS, Debian, Ubuntu and Windows are supported at this time')
+
+        package { 'telegraf':
+          ensure   => latest,
+          provider => 'dpkg',
+          source   => '/tmp/telegraf.deb',
+          require  => Wget::Fetch['telegraf'],
+          notify   => Service['telegraf'],
+        }
+
       }
     }
   }
 
-  if $::osfamily == 'windows' {
-    # required to install telegraf on windows
-    require chocolatey
-
-    # package install
-    package { 'telegraf':
-      ensure   => $::telegraf::ensure,
-      provider => chocolatey,
-      source   => $::telegraf::windows_package_url,
-    }
-  } else {
-    ensure_packages(['telegraf'], { ensure => $::telegraf::ensure })
-  }
+  # Redhat, Windows stuff removed because it wasn't even remotely tested on our changes
 
 }

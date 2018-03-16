@@ -39,6 +39,8 @@ class telegraf::params {
   $purge_config_fragments = false
   $repo_type              = 'stable'
   $windows_package_url    = 'https://chocolatey.org/api/v2/'
+  $package_source         = undef
+  $version                = '1.5.3'
 
   $outputs = {
     'influxdb'  => {
